@@ -32,6 +32,33 @@
 #define PIN_MOSFET_VALVE     14   // Факт открытия мосфета клапана (LOW = открыт)
 #define PIN_RELAY_12V        23   // Реле 12В (LOW = включено, HIGH = отключено)
 
+// === УПРАВЛЕНИЕ ЗУММЕРОМ (прерывистый сигнал 3с/3с) ===
+static bool buzzer_active = false;
+static bool buzzer_level = false;
+
+static void buzzer_toggle_callback(TimerHandle_t xTimer) {
+    if (buzzer_active) {
+        buzzer_level = !buzzer_level;
+        gpio_set_level(PIN_BUZZER, buzzer_level ? 1 : 0);
+    }
+}
+
+void alarm_buzzer_on(void) {
+    buzzer_active = true;
+    buzzer_level = true;
+    gpio_set_level(PIN_BUZZER, 1);
+    xTimerStart(alarm_timer, 0);
+    xTimerStart(buzzer_toggle_timer, 0);
+}
+
+void alarm_buzzer_off(void) {
+    buzzer_active = false;
+    buzzer_level = false;
+    gpio_set_level(PIN_BUZZER, 0);
+    xTimerStop(alarm_timer, 0);
+    xTimerStop(buzzer_toggle_timer, 0);
+}
+
 // === КОЛЛБЭКИ НАСОСА ===
 static void pump_timer_callback(TimerHandle_t xTimer) {
     printf("[PUMP] Start delay expired. Starting pump.\n");
@@ -46,12 +73,11 @@ static void safety_timeout_callback(TimerHandle_t xTimer) {
     printf("[PUMP] ALARM: Pump ran %d ms without result!\n", t_safety_ms);
     gpio_set_level(PIN_PUMP, 0);
     current_state = STATE_ERROR;
-    gpio_set_level(PIN_BUZZER, 1);
-    xTimerStart(alarm_timer, 0);
+    alarm_buzzer_on();
 }
 
 static void stop_alarm_callback(TimerHandle_t xTimer) {
-    gpio_set_level(PIN_BUZZER, 0);
+    alarm_buzzer_off();
     printf("[BUZZER] Turned off.\n");
 }
 
@@ -77,8 +103,7 @@ static void valve_timeout_callback(TimerHandle_t xTimer) {
     printf("[VALVE] TIMEOUT! Valve open for %d ms without filling! Valve ERROR.\n", t_valve_timeout_ms);
     gpio_set_level(PIN_VALVE, 0);
     valve_state = VALVE_ERROR;
-    gpio_set_level(PIN_BUZZER, 1);
-    xTimerStart(alarm_timer, 0);
+    alarm_buzzer_on();
 }
 
 static void valve_close_delay_callback(TimerHandle_t xTimer) {
@@ -95,6 +120,7 @@ timer_callbacks_t main_timer_callbacks = {
     .pump_cb = pump_timer_callback,
     .safety_cb = safety_timeout_callback,
     .alarm_cb = stop_alarm_callback,
+    .buzzer_toggle_cb = buzzer_toggle_callback,
     .stop_cb = stop_timer_callback,
     .valve_delay_cb = valve_delay_callback,
     .valve_timeout_cb = valve_timeout_callback,
@@ -264,9 +290,8 @@ void app_main(void) {
                 gpio_set_level(PIN_LED_VALVE_ERROR, 0);
                 gpio_set_level(PIN_LED_PUMP_ERROR, 0);
                 
-                // Зуммер на минуту
-                gpio_set_level(PIN_BUZZER, 1);
-                xTimerStart(alarm_timer, 0);
+                // Зуммер прерывистый (3с/3с) на заданное время
+                alarm_buzzer_on();
             }
         }
         
@@ -285,13 +310,12 @@ void app_main(void) {
             
             gpio_set_level(PIN_PUMP, 0);
             gpio_set_level(PIN_VALVE, 0);
-            gpio_set_level(PIN_BUZZER, 0);
+            alarm_buzzer_off();
             gpio_set_level(PIN_LED_VALVE_ERROR, 1);
             gpio_set_level(PIN_LED_PUMP_ERROR, 1);
             
             xTimerStop(pump_timer, 0);
             xTimerStop(safety_timer, 0);
-            xTimerStop(alarm_timer, 0);
             xTimerStop(stop_timer, 0);
             xTimerStop(valve_delay_timer, 0);
             xTimerStop(valve_timeout_timer, 0);
@@ -367,8 +391,7 @@ void app_main(void) {
             xTimerStop(safety_timer, 0);
             xTimerStop(stop_timer, 0);
             current_state = STATE_ERROR;
-            gpio_set_level(PIN_BUZZER, 1);
-            xTimerStart(alarm_timer, 0);
+            alarm_buzzer_on();
         }
         
         switch (current_state) {
@@ -404,8 +427,7 @@ void app_main(void) {
                     xTimerStop(stop_timer, 0);
                     gpio_set_level(PIN_PUMP, 0);
                     current_state = STATE_ERROR;
-                    gpio_set_level(PIN_BUZZER, 1);
-                    xTimerStart(alarm_timer, 0);
+                    alarm_buzzer_on();
                 }
                 break;
             case STATE_ERROR:

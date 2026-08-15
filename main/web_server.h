@@ -24,4 +24,7 @@ extern system_state_t current_state;
 extern valve_state_t valve_state;
 extern bool mosfet_fault;
 
+void alarm_buzzer_on(void);
+void alarm_buzzer_off(void);
+
 void start_webserver(void);

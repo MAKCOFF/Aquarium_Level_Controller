@@ -11,6 +11,7 @@
 #define DEFAULT_VALVE_DELAY_MS    5000
 #define DEFAULT_VALVE_TIMEOUT_MS  60000
 #define DEFAULT_VALVE_CLOSE_DELAY_MS 10000
+#define BUZZER_TOGGLE_MS          3000
 
 // === СТРУКТУРА ДЛЯ ХРАНЕНИЯ ВСЕХ ТАЙМЕРОВ ===
 typedef struct {
@@ -39,6 +40,7 @@ extern int t_valve_close_delay_ms;
 extern TimerHandle_t pump_timer;
 extern TimerHandle_t safety_timer;
 extern TimerHandle_t alarm_timer;
+extern TimerHandle_t buzzer_toggle_timer;
 extern TimerHandle_t stop_timer;
 extern TimerHandle_t valve_delay_timer;
 extern TimerHandle_t valve_timeout_timer;
@@ -50,6 +52,7 @@ typedef struct {
     timer_cb_t pump_cb;
     timer_cb_t safety_cb;
     timer_cb_t alarm_cb;
+    timer_cb_t buzzer_toggle_cb;
     timer_cb_t stop_cb;
     timer_cb_t valve_delay_cb;
     timer_cb_t valve_timeout_cb;

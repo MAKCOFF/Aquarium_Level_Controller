@@ -1,0 +1,23 @@
+# --- ESP-IDF build ---
+/build/
+/managed_components/
+
+# --- IDE ---
+/.idea/
+/.vscode/
+*.swp
+*~
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.pytest_cache/
+pytest_generic_gpio_example.py
+
+# --- Flashing / logging tools ---
+/.flasher.sh
+/device-tools/
+
+# --- Config (optional: keep sdkconfig if you want it in repo) ---
+sdkconfig.old
+sdkconfig.defaults.bak

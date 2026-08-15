@@ -126,13 +126,12 @@ static esp_err_t off_handler(httpd_req_t *req) {
     printf("[WEB] Reset/Auto\n");
     gpio_set_level(PIN_PUMP, 0);
     gpio_set_level(PIN_VALVE, 0);
-    gpio_set_level(PIN_BUZZER, 0);
+    alarm_buzzer_off();
     gpio_set_level(PIN_LED_VALVE_ERROR, 1);
     gpio_set_level(PIN_LED_PUMP_ERROR, 1);
     gpio_set_level(PIN_RELAY_12V, 0);  // Включаем реле обратно (LOW = включено)
     xTimerStop(pump_timer, 0);
     xTimerStop(safety_timer, 0);
-    xTimerStop(alarm_timer, 0);
     xTimerStop(stop_timer, 0);
     xTimerStop(valve_delay_timer, 0);
     xTimerStop(valve_timeout_timer, 0);
@@ -148,13 +147,12 @@ static esp_err_t disable_handler(httpd_req_t *req) {
     printf("[WEB] Disable all\n");
     gpio_set_level(PIN_PUMP, 0);
     gpio_set_level(PIN_VALVE, 0);
-    gpio_set_level(PIN_BUZZER, 0);
+    alarm_buzzer_off();
     gpio_set_level(PIN_LED_VALVE_ERROR, 1);
     gpio_set_level(PIN_LED_PUMP_ERROR, 1);
     gpio_set_level(PIN_RELAY_12V, 0);  // Включаем реле обратно (LOW = включено)
     xTimerStop(pump_timer, 0);
     xTimerStop(safety_timer, 0);
-    xTimerStop(alarm_timer, 0);
     xTimerStop(stop_timer, 0);
     xTimerStop(valve_delay_timer, 0);
     xTimerStop(valve_timeout_timer, 0);

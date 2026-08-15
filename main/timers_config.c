@@ -21,6 +21,7 @@ int t_valve_close_delay_ms = DEFAULT_VALVE_CLOSE_DELAY_MS;
 TimerHandle_t pump_timer;
 TimerHandle_t safety_timer;
 TimerHandle_t alarm_timer;
+TimerHandle_t buzzer_toggle_timer;
 TimerHandle_t stop_timer;
 TimerHandle_t valve_delay_timer;
 TimerHandle_t valve_timeout_timer;
@@ -111,11 +112,12 @@ void create_timers(const timer_callbacks_t *cbs) {
     safety_timer = xTimerCreate("SafeT", pdMS_TO_TICKS(t_safety_ms), pdFALSE, 0, cbs->safety_cb);
     stop_timer   = xTimerCreate("OT", pdMS_TO_TICKS(t_stop_ms),      pdFALSE, 0, cbs->stop_cb);
     alarm_timer  = xTimerCreate("AlrmT", pdMS_TO_TICKS(t_buzzer_ms), pdFALSE, 0, cbs->alarm_cb);
+    buzzer_toggle_timer = xTimerCreate("BzTgl", pdMS_TO_TICKS(BUZZER_TOGGLE_MS), pdTRUE, 0, cbs->buzzer_toggle_cb);
     valve_delay_timer = xTimerCreate("VlvDly", pdMS_TO_TICKS(t_valve_delay_ms), pdFALSE, 0, cbs->valve_delay_cb);
     valve_timeout_timer = xTimerCreate("VlvTout", pdMS_TO_TICKS(t_valve_timeout_ms), pdFALSE, 0, cbs->valve_timeout_cb);
     valve_close_delay_timer = xTimerCreate("VlvCls", pdMS_TO_TICKS(t_valve_close_delay_ms), pdFALSE, 0, cbs->valve_close_delay_cb);
     
-    if (!pump_timer || !safety_timer || !stop_timer || !alarm_timer ||
+    if (!pump_timer || !safety_timer || !stop_timer || !alarm_timer || !buzzer_toggle_timer ||
         !valve_delay_timer || !valve_timeout_timer || !valve_close_delay_timer) {
         printf("[ERROR] Failed to create timers!\n");
     } else {
@@ -128,6 +130,7 @@ void restart_timers(const timer_callbacks_t *cbs) {
     if (safety_timer) xTimerDelete(safety_timer, 0);
     if (stop_timer) xTimerDelete(stop_timer, 0);
     if (alarm_timer) xTimerDelete(alarm_timer, 0);
+    if (buzzer_toggle_timer) xTimerDelete(buzzer_toggle_timer, 0);
     if (valve_delay_timer) xTimerDelete(valve_delay_timer, 0);
     if (valve_timeout_timer) xTimerDelete(valve_timeout_timer, 0);
     if (valve_close_delay_timer) xTimerDelete(valve_close_delay_timer, 0);
